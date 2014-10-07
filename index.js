@@ -1,12 +1,21 @@
-var debug = require('debug')('raven');
-var passport = require('passport');
+'use strict';
+
+var assert = require('assert');
 var querystring = require('querystring');
 var util = require('util');
 var crypto = require('crypto');
 var fs = require('fs');
-var join = require('path').join;
+var debug = require('debug')('raven');
+var passport = require('passport');
 
-var RAVEN_URL = 'https://raven.cam.ac.uk/auth/authenticate.html';
+var RAVEN_URL_DEBUG = 'https://demo.raven.cam.ac.uk/auth/authenticate.html';
+var RAVEN_URL_PRODUCTION = 'https://raven.cam.ac.uk/auth/authenticate.html';
+
+var KEYS = {
+  production: fs.readFileSync(__dirname + '/pubkey2.crt'),
+  debug: fs.readFileSync(__dirname + '/pubkey901.crt')
+};
+
 var RESPONSE_PARTS = [
   'ver',
   'status',
@@ -15,6 +24,7 @@ var RESPONSE_PARTS = [
   'id',
   'url',
   'principal',
+  'ptags',
   'auth',
   'sso',
   'life',
@@ -28,12 +38,10 @@ var ERROR_CODES = {
   510: 'No mutually acceptable authentication types available.',
   520: 'Unsupported Raven WAA2WLS protocol version.',
   530: 'Raven authentication failed due to error in request.',
+  540: 'Interaction would be required',
   560: 'WAA not authorised to authenticate with Raven.',
   570: 'Raven authentication was declined on this occassion.'
 };
-
-//cache keys
-var keys = {};
 
 exports = module.exports = Strategy;
 exports.Strategy = Strategy;
@@ -43,9 +51,11 @@ function Strategy(options, verify) {
   if (typeof verify !== 'function') throw new Error('You must provide a verify function');
   this.name = 'raven';
   this._verify = verify;
-  this._audience = options.audience;
+  this._opts = options;
+
   this.clockOffset = options.clockOffset || 0;
   this.clockMargin = options.clockMargin || 60000;
+  this.debug = options.debug || false;
 }
 util.inherits(Strategy, passport.Strategy);
 
@@ -65,34 +75,23 @@ Strategy.prototype.authenticate = function(req) {
 
 Strategy.prototype.redirectToAuthenticate = function (req) {
   var params = querystring.stringify({
-    ver: 2,
-    url: this._audience + req.url,
-    desc: this.siteName,
-    params: ''
+    ver: 3,
+    url: this._opts.audience + req.url,
+    desc: this._opts.desc,
+    msg: this._opts.msg,
+    iact: this._opts.iact === true ? 'yes' : this._opts.iact === false ? 'no' : null
   });
-  this.redirect(RAVEN_URL + '?' + params);
+  this.redirect((this.debug ? RAVEN_URL_DEBUG : RAVEN_URL_PRODUCTION) + '?' + params);
 };
 
 Strategy.prototype.processResponse = function (req) {
   var self = this;
-  var response = {};
-  var extraneous = [];
-  req.query['WLS-Response']
-    .split('!')
-    .forEach(function (item, i) {
-      if (!RESPONSE_PARTS[i]) {
-        extraneous.push([i, item]);
-      } else {
-        response[RESPONSE_PARTS[i]] = item;
-      }
-    });
-  if (extraneous.length) {
-    debug('Incorrect lenght of WLS-Response');
-    return this.error(new Error('Incorrect lenght of WLS-Response'));
-  }
+
+  var response = decodeResponse(req);
+
   if (response.status != '200') {
     var message = ERROR_CODES[response.status] ||
-      ('Raven authentication failed with unknown status ' + response.status);
+        ('Raven authentication failed with unknown status ' + response.status);
     debug(message);
     if (response.status = '410') return this.fail();
     else return this.error(new Error(message));
@@ -103,13 +102,12 @@ Strategy.prototype.processResponse = function (req) {
     if (interval < this.clockMargin) {
       debug('Checking certificate');
       //data = parameters - (sig + kid)
-      var data = req.query['WLS-Response']
-        .split('!')
-        .slice(0, -2)
-        .join('!');
-      if (checkSignature(data, response.sig, response.kid)) {
+      var data = req.query['WLS-Response'].split('!').slice(0, -2).join('!');
+      assert(response.kid === '2' || response.kid === '901');
+      if (checkSignature(data, response.sig, this.debug ? KEYS.debug : KEYS.production)) {
         debug('Raven response signature check passed.');
-        return self._verify(response.principal, function (err, user, info) {
+        response.isCurrent = response.ptags === 'current';
+        return self._verify(response.principal, response, function (err, user, info) {
           if (err) { return self.error(err); }
           if (!user) { return self.fail(info); }
           self.success(user, info);
@@ -125,11 +123,22 @@ Strategy.prototype.processResponse = function (req) {
   }
 };
 
-function checkSignature(data, sig, kid) {
+function decodeResponse(req) {
+  var values = req.query['WLS-Response'].split('!');
+  var response = {};
+  if (values.length !== RESPONSE_PARTS.length) {
+    debug('Incorrect lenght of WLS-Response');
+    throw new Error('Incorrect lenght of WLS-Response');
+  }
+  values.forEach(function (item, i) {
+    response[RESPONSE_PARTS[i]] = item;
+  });
+  return response;
+}
+
+function checkSignature(data, sig, key) {
   data = decodeURI(data);
   sig = wlsDecode(decodeURI(sig));
-  var keyPath = join(__dirname, 'pubkey' + kid + '.crt');
-  var key = keys[keyPath] || (keys[keyPath] = fs.readFileSync(keyPath));
   var verifier = crypto.createVerify('SHA1');
   verifier.update(data);
   var res = verifier.verify(key, sig, 'base64');
