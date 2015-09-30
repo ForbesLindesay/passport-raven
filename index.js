@@ -107,11 +107,19 @@ Strategy.prototype.processResponse = function (req) {
       if (checkSignature(data, response.sig, this.debug ? KEYS.debug : KEYS.production)) {
         debug('Raven response signature check passed.');
         response.isCurrent = response.ptags === 'current';
-        return self._verify(response.principal, response, function (err, user, info) {
-          if (err) { return self.error(err); }
-          if (!user) { return self.fail(info); }
-          self.success(user, info);
-        });
+        if (self._opts['passReqToCallback']) {
+        	return self._verify(req,response.principal, response, function (err, user, info) {
+        	  if (err) { return self.error(err); }
+        	  if (!user) { return self.fail(info); }
+        	  self.success(user, info);
+        	});
+	}else{
+                return self._verify(response.principal, response, function (err, user, info) {
+                  if (err) { return self.error(err); }
+                  if (!user) { return self.fail(info); }
+                  self.success(user, info);
+                });
+	}
       } else {
         debug('Raven response signature check failed.');
         return this.error(new Error('Raven response signature check failed.'));

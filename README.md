@@ -45,6 +45,25 @@ passport.use(new RavenStrategy({
  - `desc` (String) - a description of the website to be displayed on the raven login page
  - `msg` (String) - a description of why authentication is being requested
  - `iact` (Boolean) - Set to `true` to force users to type their username and password even if they are already logged in. Set to `false` to only login if it can be done without user interaction.  Defaults to `null`.
+ - `passReqToCallback` (Boolean) - If set the request object is provided as the first argument to the verify function. The verify callback can therefor euse the state of the request to tailer further handling.
+
+
+```js
+
+passport.use(new RavenStrategy({
+  desc: 'My Raven Application',
+  msg: 'we need to check you are a current student',
+  // use demonstration raven server in development
+  debug: process.env.NODE_ENV !== 'production',
+  passReqToCallback : true
+}, function (req,crsid, params, callback) {
+  // this function could be defined elsewhere eg in a Sails app services protocol
+     ....
+  }
+});
+`
+
+```
 
 **Params:**
 
