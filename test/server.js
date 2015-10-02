@@ -5,7 +5,7 @@ var passport = require('passport');
 var Raven = require('../');
 
 passport.use(new Raven({
-  audience: process.env.test_audience || 'http://localhost:3000',
+  audience: 'http://localhost:3000',
   desc: 'Passport Raven Demo',
   msg: 'Login to demonstrate logging in to a node.js app using passport-raven',
   debug: false
