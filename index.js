@@ -113,13 +113,13 @@ Strategy.prototype.processResponse = function (req) {
             if (!user) { return self.fail(info); }
             self.success(user, info);
           });
-	}else{
+        } else {
           return self._verify(response.principal, response, function (err, user, info) {
             if (err) { return self.error(err); }
             if (!user) { return self.fail(info); }
             self.success(user, info);
           });
-	}
+        }
       } else {
         debug('Raven response signature check failed.');
         return this.error(new Error('Raven response signature check failed.'));
