@@ -35,7 +35,7 @@ passport.use(new RavenStrategy({
   if (params.isCurrent) {
     callback(null, {id: crsid});
   } else {
-    callback(new Error('My Raven application is only for current students and staff');
+    callback(new Error('My Raven application is only for current students and staff'));
   }
 });
 ```
