@@ -37,7 +37,7 @@ passport.use(new RavenStrategy({
   } else {
     callback(new Error('My Raven application is only for current students and staff'));
   }
-});
+}));
 ```
 
 **Options:**
