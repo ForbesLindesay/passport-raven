@@ -135,8 +135,8 @@ function decodeResponse(req) {
   var values = req.query['WLS-Response'].split('!');
   var response = {};
   if (values.length !== RESPONSE_PARTS.length) {
-    debug('Incorrect lenght of WLS-Response');
-    throw new Error('Incorrect lenght of WLS-Response');
+    debug('Incorrect length of WLS-Response');
+    throw new Error('Incorrect length of WLS-Response');
   }
   values.forEach(function (item, i) {
     response[RESPONSE_PARTS[i]] = item;

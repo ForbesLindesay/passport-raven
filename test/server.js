@@ -37,7 +37,7 @@ app.get('/login', passport.authenticate('raven'), function (req, res) {
 });
 app.get('/', function (req, res) {
   if (req.isAuthenticated()) {
-    res.send('loged in as ' + req.user.crsid + ' (a ' + (req.user.isCurrent ? 'current' : 'past') + ' member of the University of Cambridge)');
+    res.send('Logged in as ' + req.user.crsid + ' (a ' + (req.user.isCurrent ? 'current' : 'past') + ' member of the University of Cambridge)');
   } else {
     res.send('<a href="/login">Login using Raven</a>');
   }
