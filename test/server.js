@@ -11,7 +11,7 @@ passport.use(new Raven({
   debug: false
 }, function (crsid, response, cb) {
   console.dir(response);
-  console.log('login with crsid: ' + crsid);
+  console.log('Login with crsid: ' + crsid);
   cb(null, {crsid: crsid, isCurrent: response.isCurrent});
 }));
 
@@ -37,7 +37,7 @@ app.get('/login', passport.authenticate('raven'), function (req, res) {
 });
 app.get('/', function (req, res) {
   if (req.isAuthenticated()) {
-    res.send('loged in as ' + req.user.crsid + ' (a ' + (req.user.isCurrent ? 'current' : 'past') + ' member of the University of Cambridge)');
+    res.send('Logged in as ' + req.user.crsid + ' (a ' + (req.user.isCurrent ? 'current' : 'past') + ' member of the University of Cambridge).');
   } else {
     res.send('<a href="/login">Login using Raven</a>');
   }

@@ -38,7 +38,7 @@ var ERROR_CODES = {
   510: 'No mutually acceptable authentication types available.',
   520: 'Unsupported Raven WAA2WLS protocol version.',
   530: 'Raven authentication failed due to error in request.',
-  540: 'Interaction would be required',
+  540: 'Interaction would be required.',
   560: 'WAA not authorised to authenticate with Raven.',
   570: 'Raven authentication was declined on this occassion.'
 };
@@ -47,8 +47,8 @@ exports = module.exports = Strategy;
 exports.Strategy = Strategy;
 
 function Strategy(options, verify) {
-  if (typeof options.audience !== 'string') throw new Error('You must provide an audience option');
-  if (typeof verify !== 'function') throw new Error('You must provide a verify function');
+  if (typeof options.audience !== 'string') throw new Error('You must provide an audience option.');
+  if (typeof verify !== 'function') throw new Error('You must provide a verify function.');
   this.name = 'raven';
   this._verify = verify;
   this._opts = options;
@@ -89,18 +89,18 @@ Strategy.prototype.processResponse = function (req) {
 
   var response = decodeResponse(req);
 
-  if (response.status != '200') {
+  if (response.status !== '200') {
     var message = ERROR_CODES[response.status] ||
-        ('Raven authentication failed with unknown status ' + response.status);
+        ('Raven authentication failed with unknown status ' + response.status + '.');
     debug(message);
-    if (response.status = '410') return this.fail();
+    if (response.status === '410') return this.fail();
     else return this.error(new Error(message));
   } else if (response.status === '200') {
     var interval = (now() + this.clockOffset) - parseDate(response.issue);
     if (interval < 0) interval = -interval;
 
     if (interval < this.clockMargin) {
-      debug('Checking certificate');
+      debug('Checking certificate.');
       //data = parameters - (sig + kid)
       var data = req.query['WLS-Response'].split('!').slice(0, -2).join('!');
       assert(response.kid === '2' || response.kid === '901');
@@ -135,8 +135,8 @@ function decodeResponse(req) {
   var values = req.query['WLS-Response'].split('!');
   var response = {};
   if (values.length !== RESPONSE_PARTS.length) {
-    debug('Incorrect lenght of WLS-Response');
-    throw new Error('Incorrect lenght of WLS-Response');
+    debug('Incorrect length of WLS-Response.');
+    throw new Error('Incorrect length of WLS-Response.');
   }
   values.forEach(function (item, i) {
     response[RESPONSE_PARTS[i]] = item;
@@ -151,10 +151,10 @@ function checkSignature(data, sig, key) {
   verifier.update(data);
   var res = verifier.verify(key, sig, 'base64');
   if (res) {
-    debug('verification passed');
+    debug('Verification passed.');
     return true;
   } else {
-    debug('verification failed');
+    debug('Verification failed.');
     return false;
   }
 }
