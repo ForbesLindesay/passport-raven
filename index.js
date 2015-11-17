@@ -89,11 +89,11 @@ Strategy.prototype.processResponse = function (req) {
 
   var response = decodeResponse(req);
 
-  if (response.status != '200') {
+  if (response.status !== '200') {
     var message = ERROR_CODES[response.status] ||
         ('Raven authentication failed with unknown status ' + response.status);
     debug(message);
-    if (response.status = '410') return this.fail();
+    if (response.status === '410') return this.fail();
     else return this.error(new Error(message));
   } else if (response.status === '200') {
     var interval = (now() + this.clockOffset) - parseDate(response.issue);
