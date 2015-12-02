@@ -133,11 +133,16 @@ Strategy.prototype.processResponse = function (req) {
 
 function decodeResponse(req) {
   var values = req.query['WLS-Response'].split('!');
-  var response = {};
+  if (values.length >= 1 && ['1', '2'].indexOf(values[RESPONSE_PARTS.indexOf('ver')]) !== -1) {
+    // The response could have any version up to the one we specified in the request
+    // In versions 1 and 2 of the protocol, there is no ptags response parameter, so we add an empty value to avoid any index issues
+    values.splice(RESPONSE_PARTS.indexOf('ptags'), 0, '');
+  }
   if (values.length !== RESPONSE_PARTS.length) {
     debug('Incorrect length of WLS-Response.');
     throw new Error('Incorrect length of WLS-Response.');
   }
+  var response = {};
   values.forEach(function (item, i) {
     response[RESPONSE_PARTS[i]] = item;
   });
