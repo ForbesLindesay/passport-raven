@@ -18,10 +18,10 @@
   "readmeFilename": "README.md",
   "gitHead": "90838415a7b4dfe4b2b5ddad467589b227fcaf06",
   "devDependencies": {
-    "express": "~3.1.0"
+    "express": "~4.14.1"
   },
   "dependencies": {
-    "passport": "~0.1.15",
-    "debug": "~0.7.2"
+    "passport": "~0.3.2",
+    "debug": "~2.6.1"
   }
 }
