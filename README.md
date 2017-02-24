@@ -1,5 +1,7 @@
 # passport-raven
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/ForbesLindesay/passport-raven.svg)](https://greenkeeper.io/)
+
 <img src="http://i.imgur.com/EtxtRb0.png" align="right"/>
 
 Raven (University of Cambridge) authentication module for passport.
