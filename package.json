@@ -18,10 +18,15 @@
   "readmeFilename": "README.md",
   "gitHead": "90838415a7b4dfe4b2b5ddad467589b227fcaf06",
   "devDependencies": {
-    "express": "~3.1.0"
+    "@authentication/cookie-session": "^0.0.3",
+    "express": "^4.17.1",
+    "morgan": "^1.9.1",
+    "passport": "^0.4.0"
   },
   "dependencies": {
-    "passport": "~0.1.15",
-    "debug": "~0.7.2"
+    "debug": "^4.1.1"
+  },
+  "peerDependencies": {
+    "passport": "*"
   }
 }

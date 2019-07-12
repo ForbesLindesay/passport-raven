@@ -1,11 +1,13 @@
 var express = require('express');
+var morgan = require('morgan');
+var session = require('@authentication/cookie-session');
 var app = express();
 
 var passport = require('passport');
 var Raven = require('../');
 
 passport.use(new Raven({
-  audience: 'http://localhost:3000',
+  audience: process.argv[2] || 'http://localhost:3000',
   desc: 'Passport Raven Demo',
   msg: 'Login to demonstrate logging in to a node.js app using passport-raven',
   debug: false
@@ -23,10 +25,11 @@ passport.deserializeUser(function(user, done) {
   done(null, user);
 });
 
-app.use(express.logger('dev'));
-app.use(express.cookieParser());
-app.use(express.bodyParser());
-app.use(express.session({ secret: 'keyboard cat' }));
+app.use(morgan('dev'));
+app.use(session({
+  maxAge: '1 month',
+  keys: ['Some Secret String'],
+}));
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -44,3 +47,5 @@ app.get('/', function (req, res) {
 });
 
 app.listen(3000);
+
+console.log('listening on http://localhost:3000');
